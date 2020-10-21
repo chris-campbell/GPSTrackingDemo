@@ -15,7 +15,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,7 +30,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     public static final int DEFAULT_UPDATE_INTERVAL = 30;
     public static final int FAST_UPDATE_INTERVAL = 5;
-    private static final int PERMISSIONS_FINE_LOCATION = 1904;
+    private static final int LOCATION_PERMISSIONS_CODE = 1904;
 
     // references to the UI elements
     TextView tv_lat, tv_lon, tv_altitude, tv_accuracy, tv_speed, tv_sensor, tv_updates,
@@ -89,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
                 // get GPS location
 //                currentLocation
                 // add to location object to global application list
-                MyApplication myApplication = (MyApplication)getApplicationContext();
+                MyApplication myApplication = (MyApplication) getApplicationContext();
                 savedLocations = myApplication.getMyLocations();
                 savedLocations.add(currentLocation);
             }
@@ -115,9 +114,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (sw_gps.isChecked()) {
+                    // GPS
                     locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
                     tv_sensor.setText("Using GPS sensors");
                 } else {
+                    // cell tower/wifi
                     locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
                     tv_sensor.setText("Using Towers + WIFI");
                 }
@@ -167,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         switch (requestCode) {
-            case PERMISSIONS_FINE_LOCATION:
+            case LOCATION_PERMISSIONS_CODE:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     updateGPS();
                 } else {
@@ -186,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MainActivity.this);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             // user grants permission
             // getLastLocation gets last location in memory, whether it was 5 mins or 10 hours ago
             fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -207,7 +208,10 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // each item requested get a unique permission code do onPostpermissionResult knows
             // what permission request was granted.
-            requestPermissions(new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_FINE_LOCATION);
+            requestPermissions(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION},
+                    LOCATION_PERMISSIONS_CODE);
         }
     }
 
@@ -238,8 +242,8 @@ public class MainActivity extends AppCompatActivity {
             tv_address.setText("Unable to get address");
         }
 
-        // show the number of waypoints saved
-        MyApplication myApplication = (MyApplication)getApplicationContext();
+        // show the number of way points saved
+        MyApplication myApplication = (MyApplication) getApplicationContext();
         savedLocations = myApplication.getMyLocations();
         waypointCounts.setText(String.valueOf(savedLocations.size()));
     }
